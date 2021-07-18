@@ -5,7 +5,7 @@ load_week_ngs <- function(season, week, type, session) {
   # season <- 2020
   # week <- 5
   # type <- "passing"
-  # session <- rvest::html_session("https://nextgenstats.nfl.com/stats/top-plays/fastest-ball-carriers")
+  # session <- rvest::session("https://nextgenstats.nfl.com/stats/top-plays/fastest-ball-carriers")
 
   if (week == 0) {
     cli::cli_ul("Loading {season} overall {type} stats...")
@@ -85,7 +85,7 @@ save_ngs_data <- function(seasons) {
   if (!all(seasons %in% 2016:most_recent)) {
     cli::cli_abort("Please pass valid seasons between 2016 and {most_recent}")
   }
-  session <- rvest::html_session("https://nextgenstats.nfl.com/stats/top-plays/fastest-ball-carriers")
+  session <- rvest::session("https://nextgenstats.nfl.com/stats/top-plays/fastest-ball-carriers")
   todo <- expand.grid(season = seasons, type = c("passing", "rushing", "receiving"))
   purrr::walk2(todo$season, todo$type, save_ngs_type, session)
   cli::cli_alert_success("{.field DONE}")

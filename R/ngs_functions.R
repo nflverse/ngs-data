@@ -103,6 +103,18 @@ save_ngs_type <- function(season, type = c("passing", "rushing", "receiving"), s
   )
 }
 
+combine_ngs_data <- function(type){
+  save <- purrr::map_dfr(2016:most_recent_season(), function(x) readRDS(glue::glue("data/ngs_{x}_{type}.rds")))
+  saveRDS(save, glue::glue("data/ngs_{type}.rds"))
+  readr::write_csv(save, glue::glue("data/ngs_{type}.csv.gz"))
+  qs::qsave(save, glue::glue("data/ngs_{type}.qs"),
+            preset = "custom",
+            algorithm = "zstd_stream",
+            compress_level = 22,
+            shuffle_control = 15
+  )
+}
+
 most_recent_season <- function() {
   today <- Sys.Date()
   current_year <- format(today, format = "%Y") %>% as.integer()

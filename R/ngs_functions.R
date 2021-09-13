@@ -1,5 +1,3 @@
-`%>%` <- magrittr::`%>%`
-
 load_week_ngs <- function(season, week, type, session) {
   # for testing
   # season <- 2020
@@ -31,44 +29,44 @@ load_week_ngs <- function(season, week, type, session) {
     httr::config(referer = session$url),
     httr::user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.86 Safari/537.36"),
     handle = session$handle
-  ) %>%
+  ) |>
     httr::content()
 
-  info <- response %>%
-    purrr::discard(is.list) %>%
-    tibble::as_tibble() %>%
-    janitor::clean_names() %>%
+  info <- response |>
+    purrr::discard(is.list) |>
+    tibble::as_tibble() |>
+    janitor::clean_names() |>
     dplyr::mutate(week = week)
 
-  teams <- readRDS("R/teams_colors_logos.rds") %>%
-    dplyr::select(team_id, team_abbr) %>%
+  teams <- readRDS("R/teams_colors_logos.rds") |>
+    dplyr::select(team_id, team_abbr) |>
     dplyr::filter(!team_abbr %in% c("LA", "OAK", "STL", "SD"))
 
-  if (!is.null(response %>% purrr::pluck("stats"))) {
-    stats <- response %>%
-      purrr::pluck("stats") %>%
+  if (!is.null(response |> purrr::pluck("stats"))) {
+    stats <- response |>
+      purrr::pluck("stats") |>
       purrr::map_dfr(function(x) {
-        st <- x %>%
-          purrr::discard(is.list) %>%
+        st <- x |>
+          purrr::discard(is.list) |>
           tibble::as_tibble_row()
-        pl <- x %>% purrr::pluck("player")
-        pl <- pl %>% purrr::set_names(paste0("player_", names(pl)))
+        pl <- x |> purrr::pluck("player")
+        pl <- pl |> purrr::set_names(paste0("player_", names(pl)))
         return(dplyr::bind_cols(st, pl))
-      }) %>%
-      janitor::clean_names() %>%
+      }) |>
+      janitor::clean_names() |>
       dplyr::rename(
         team_id = dplyr::first(tidyselect::contains("team_id"))
-      ) %>%
-      dplyr::left_join(teams, by = "team_id") %>%
+      ) |>
+      dplyr::left_join(teams, by = "team_id") |>
       dplyr::select(-tidyselect::any_of(c("season", "season_type", "week")))
 
-    out <- dplyr::bind_cols(info, stats) %>%
+    out <- dplyr::bind_cols(info, stats) |>
       dplyr::select(
         tidyselect::any_of(c("season", "season_type", "week")),
         tidyselect::any_of(c("player_display_name", "player_position", "team_abbr")),
         tidyselect::any_of(get(paste0(type, "_stats"))),
         tidyselect::any_of(player_info)
-      ) %>%
+      ) |>
       dplyr::select(-tidyselect::any_of(c(
         "player_nfl_id", "player_esb_id", "player_current_team_id",
         "player_season", "player_football_name", "player_headshot",
@@ -118,8 +116,8 @@ combine_ngs_data <- function(type){
 
 most_recent_season <- function() {
   today <- Sys.Date()
-  current_year <- format(today, format = "%Y") %>% as.integer()
-  current_month <- format(today, format = "%m") %>% as.integer()
+  current_year <- format(today, format = "%Y") |> as.integer()
+  current_month <- format(today, format = "%m") |> as.integer()
   if (current_month >= 9){
     return(current_year)
   } else {

@@ -1,0 +1,26 @@
+Package: ngsdata
+Title: NGS Scraping Functions for nflverse
+Version: 0.0.1
+Authors@R: c(
+    person(given = "Sebastian",
+             family = "Carl",
+             role = c("aut","cre"),
+             email = "mrcaseb@gmail.com")
+  )
+Description: A collection of NGS scraping functions for nflverse
+License: GPL (>= 3)
+Imports:
+    arrow,
+    dplyr,
+    purrr,
+    readr,
+    cli,
+    httr,
+    janitor,
+    callr,
+    rvest,
+    qs
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1

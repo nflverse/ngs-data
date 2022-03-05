@@ -1,11 +1,9 @@
-# **ngs-data**
+# ngs-data
 
-This repo hosts NFL Next Gen Stats Data scraped from the [NGS website](https://nextgenstats.nfl.com).
+This repository stores code and workflows for updating nflverse Next Gen Stats scraped from <https://nextgenstats.nfl.com>. The data itself is now being automatically pushed to GitHub releases at https://github.com/nflverse/nflverse-data/releases, which reduces repository bloat. For more information on this change, please see: {blogpost TBD}
 
-Starting in 2016 the data include `passing`, `rushing` and `receiving` stats. The data are available separately by season and as a combined file. 
+We recommend using the nflreadr R package to access the latest data or nfl-data-py for Python. If you would like to read directly from URLs, linking to nflverse-data release URLs is now the best way to do so.
 
-The data are saved in multiple formats: 
+Data here will eventually be archived away from this repository (by August 2022) and we encourage everyone to shift to nflverse-data URLs for all projects.
 
- - compressed csv (`.csv.gz`) for non-R users
- - native R serialized and compressed format (`.rds`)
- - quick serialization R format (`.qs`)
+nflreadr v1.2.0+ will correctly reference files for these changes.

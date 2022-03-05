@@ -106,7 +106,7 @@ combine_ngs_data <- function(type){
   save <- purrr::map_dfr(2016:most_recent_season(), function(x) readRDS(glue::glue("data/ngs_{x}_{type}.rds")))
   
   attr(save, "nflverse_timestamp") <- Sys.time()
-  attr(save, "nflverse_type") <- glue::glue("NFL Next Gen Stats {type} weekly data")
+  attr(save, "nflverse_type") <- glue::glue("Next Gen Stats weekly {type} data")
   
   saveRDS(save, glue::glue("data/ngs_{type}.rds"))
   readr::write_csv(save, glue::glue("data/ngs_{type}.csv.gz"))

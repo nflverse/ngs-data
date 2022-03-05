@@ -79,7 +79,7 @@ load_week_ngs <- function(season, week, type, session) {
 }
 
 save_ngs_data <- function(seasons) {
-  most_recent <- nflreadr::most_recent_season()
+  most_recent <- most_recent_season()
   if (!all(seasons %in% 2016:most_recent)) {
     cli::cli_abort("Please pass valid seasons between 2016 and {most_recent}")
   }
@@ -103,7 +103,7 @@ save_ngs_type <- function(season, type = c("passing", "rushing", "receiving"), s
 }
 
 combine_ngs_data <- function(type){
-  save <- purrr::map_dfr(2016:nflreadr::most_recent_season(), function(x) readRDS(glue::glue("data/ngs_{x}_{type}.rds")))
+  save <- purrr::map_dfr(2016:most_recent_season(), function(x) readRDS(glue::glue("data/ngs_{x}_{type}.rds")))
   
   attr(save, "nflverse_timestamp") <- Sys.time()
   attr(save, "nflverse_type") <- glue::glue("NFL Next Gen Stats {type} weekly data")

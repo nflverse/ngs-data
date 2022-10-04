@@ -91,7 +91,10 @@ save_ngs_data <- function(seasons) {
 
 save_ngs_type <- function(season, type = c("passing", "rushing", "receiving"), session) {
   max_week <- ifelse(season >= 2021, 23, 22)
-  ngs <- purrr::map2_dfr(season, 0:max_week, load_week_ngs, type, session)
+  ngs <- purrr::map2_dfr(season, 0:max_week, load_week_ngs, type, session) |>
+    # ngs website returned duplicates in 2022 with slightly different values. So
+    # we need to distinct on season, week and player ID.
+    dplyr::distinct(season, week, player_gsis_id, .keep_all = TRUE)
   saveRDS(ngs, glue::glue("data/ngs_{season}_{type}.rds"))
   readr::write_csv(ngs, glue::glue("data/ngs_{season}_{type}.csv.gz"))
   qs::qsave(ngs, glue::glue("data/ngs_{season}_{type}.qs"),

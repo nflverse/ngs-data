@@ -42,9 +42,10 @@ load_week_ngs <- function(season, week, type, session) {
     dplyr::select(team_id, team_abbr) |>
     dplyr::filter(!team_abbr %in% c("LA", "OAK", "STL", "SD"))
 
-  if (!is.null(response |> purrr::pluck("stats"))) {
-    stats <- response |>
-      purrr::pluck("stats") |>
+  data <- response |> purrr::pluck("stats")
+
+  if (!is.null(data) & length(data) > 0) {
+    stats <- data |>
       purrr::map_dfr(function(x) {
         st <- x |>
           purrr::discard(is.list) |>
@@ -107,10 +108,10 @@ save_ngs_type <- function(season, type = c("passing", "rushing", "receiving"), s
 
 combine_ngs_data <- function(type){
   save <- purrr::map_dfr(2016:most_recent_season(), function(x) readRDS(glue::glue("data/ngs_{x}_{type}.rds")))
-  
+
   attr(save, "nflverse_timestamp") <- Sys.time()
   attr(save, "nflverse_type") <- glue::glue("Next Gen Stats weekly {type} data")
-  
+
   saveRDS(save, glue::glue("data/ngs_{type}.rds"))
   readr::write_csv(save, glue::glue("data/ngs_{type}.csv.gz"))
   arrow::write_parquet(save, glue::glue("data/ngs_{type}.parquet"))
@@ -121,12 +122,12 @@ combine_ngs_data <- function(type){
             shuffle_control = 15
   )
 }
-                         
+
 upload_nflverse <- function(data_path = "data") {
   list.files(path = data_path, full.names = TRUE) |>
     nflversedata::nflverse_upload("nextgen_stats")
 }
-                         
+
 most_recent_season <- function() {
   today <- Sys.Date()
   current_year <- format(today, format = "%Y") |> as.integer()

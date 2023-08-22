@@ -128,16 +128,7 @@ upload_nflverse <- function(data_path = "data") {
     nflversedata::nflverse_upload("nextgen_stats")
 }
 
-most_recent_season <- function() {
-  today <- Sys.Date()
-  current_year <- format(today, format = "%Y") |> as.integer()
-  current_month <- format(today, format = "%m") |> as.integer()
-  if (current_month >= 9){
-    return(current_year)
-  } else {
-    return(current_year - 1)
-  }
-}
+most_recent_season <- nflreadr::most_recent_season
 
 passing_stats <- c(
   "avg_time_to_throw",

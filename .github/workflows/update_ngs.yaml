@@ -35,8 +35,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           packages: nflreadr
-      - name: Query Seasons
-        id: query_seasons
+      - id: query_seasons
         run: |
           if [ $FULL_REBUILD == true ]
           then

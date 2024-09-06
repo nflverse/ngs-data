@@ -10,16 +10,15 @@ Authors@R: c(
 Description: A collection of NGS scraping functions for nflverse
 License: GPL (>= 3)
 Imports:
-    arrow,
     dplyr,
     purrr,
-    readr,
     cli,
     httr,
     janitor,
-    callr,
     rvest,
-    qs
+    rlang,
+    glue,
+    nflreadr
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

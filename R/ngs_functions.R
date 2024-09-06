@@ -80,60 +80,56 @@ load_week_ngs <- function(season, week, type, session) {
 }
 
 save_ngs_data <- function(seasons) {
-  most_recent <- most_recent_season()
+  most_recent <- nflreadr::most_recent_season()
   if (!all(seasons %in% 2016:most_recent)) {
     cli::cli_abort("Please pass valid seasons between 2016 and {most_recent}")
   }
   session <- rvest::session("https://nextgenstats.nfl.com/stats/top-plays/fastest-ball-carriers")
   todo <- expand.grid(season = seasons, type = c("passing", "rushing", "receiving"))
-  purrr::walk2(todo$season, todo$type, save_ngs_type, session)
+  file_dir <- file.path(tempdir(), "ngs")
+  if (!dir.exists(file_dir)) dir.create(file_dir)
+  purrr::walk2(todo$season, todo$type, save_ngs_type, session, file_dir = file_dir)
+  nflversedata::nflverse_upload(
+    list.files(file_dir, pattern = "ngs", full.names = TRUE),
+    tag = "ngs-season",
+    repo = "nflverse/ngs-data"
+  )
   cli::cli_alert_success("{.field DONE}")
 }
 
-save_ngs_type <- function(season, type = c("passing", "rushing", "receiving"), session) {
-  max_week <- ifelse(season >= 2021, 23, 22)
-  ngs <- purrr::map2_dfr(season, 0:max_week, load_week_ngs, type, session) |>
+save_ngs_type <- function(season, type = c("passing", "rushing", "receiving"), session, file_dir) {
+  max_week <- nflreadr::load_schedules(seasons = season) |>
+    dplyr::filter(!is.na(result)) |>
+    dplyr::pull(week) |>
+    max()
+  ngs <- purrr::map2_dfr(season, seq(0, max_week + 1), load_week_ngs, type, session) |>
     # ngs website returned duplicates in 2022 with slightly different values. So
     # we need to distinct on season, week and player ID.
     dplyr::distinct(season, week, player_gsis_id, .keep_all = TRUE)
-  saveRDS(ngs, glue::glue("data/ngs_{season}_{type}.rds"))
-  readr::write_csv(ngs, glue::glue("data/ngs_{season}_{type}.csv.gz"))
-  qs::qsave(ngs, glue::glue("data/ngs_{season}_{type}.qs"),
-    preset = "custom",
-    algorithm = "zstd_stream",
-    compress_level = 22,
-    shuffle_control = 15
-  )
+  saveRDS(ngs, file.path(file_dir, paste0("ngs_", season, "_", type, ".rds")))
 }
 
 combine_ngs_data <- function(type){
   cli::cli_progress_step("Combining {.field {type}} data")
-  save <- purrr::map_dfr(2016:most_recent_season(), function(x) readRDS(glue::glue("data/ngs_{x}_{type}.rds")))
+  save <- purrr::map(
+    seq(2016, nflreadr::most_recent_season()),
+    function(s, t){
+      glue::glue("https://github.com/nflverse/ngs-data/releases/download/ngs-season/ngs_{s}_{t}.rds") |>
+        nflreadr::rds_from_url()
+    }, t = type
+  ) |>
+    purrr::list_rbind()
 
-  attr(save, "nflverse_timestamp") <- Sys.time()
-  attr(save, "nflverse_type") <- glue::glue("Next Gen Stats weekly {type} data")
-
-  saveRDS(save, glue::glue("data/ngs_{type}.rds"))
-  readr::write_csv(save, glue::glue("data/ngs_{type}.csv.gz"))
-  arrow::write_parquet(save, glue::glue("data/ngs_{type}.parquet"))
-  qs::qsave(save, glue::glue("data/ngs_{type}.qs"),
-            preset = "custom",
-            algorithm = "zstd_stream",
-            compress_level = 22,
-            shuffle_control = 15
+  nflversedata::nflverse_save(
+    save,
+    glue::glue("ngs_{type}"),
+    glue::glue("Next Gen Stats weekly {type} data"),
+    file_types = c("rds", "parquet", "qs", "csv.gz"),
+    release_tag = "nextgen_stats"
   )
+
   cli::cli_progress_done()
 }
-
-upload_nflverse <- function(data_path = "data") {
-  file_pattern <- paste(most_recent_season(), "ngs_passing", "ngs_receiving", "ngs_rushing", sep = "|")
-  files <- list.files(path = data_path, full.names = TRUE, pattern = file_pattern)
-  cli::cli_alert_info("Going to upload the following files:")
-  cli::cli_ul(files)
-  nflversedata::nflverse_upload(files, "nextgen_stats")
-}
-
-most_recent_season <- nflreadr::most_recent_season
 
 passing_stats <- c(
   "avg_time_to_throw",

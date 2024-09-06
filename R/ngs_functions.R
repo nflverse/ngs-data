@@ -107,6 +107,7 @@ save_ngs_type <- function(season, type = c("passing", "rushing", "receiving"), s
 }
 
 combine_ngs_data <- function(type){
+  cli::cli_progress_step("Combining {.field {type}} data")
   save <- purrr::map_dfr(2016:most_recent_season(), function(x) readRDS(glue::glue("data/ngs_{x}_{type}.rds")))
 
   attr(save, "nflverse_timestamp") <- Sys.time()
@@ -121,10 +122,12 @@ combine_ngs_data <- function(type){
             compress_level = 22,
             shuffle_control = 15
   )
+  cli::cli_progress_done()
 }
 
 upload_nflverse <- function(data_path = "data") {
-  list.files(path = data_path, full.names = TRUE) |>
+  file_pattern <- paste(most_recent_season(), "ngs_passing", "ngs_receiving", "ngs_rushing", sep = "|")
+  list.files(path = data_path, full.names = TRUE, pattern = file_pattern) |>
     nflversedata::nflverse_upload("nextgen_stats")
 }
 

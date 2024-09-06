@@ -79,13 +79,14 @@ load_week_ngs <- function(season, week, type, session) {
  out
 }
 
-save_ngs_data <- function(seasons) {
+save_ngs_data <- function(seasons, type = c("passing", "rushing", "receiving")) {
   most_recent <- nflreadr::most_recent_season()
+  type <- rlang::arg_match(type)
   if (!all(seasons %in% 2016:most_recent)) {
     cli::cli_abort("Please pass valid seasons between 2016 and {most_recent}")
   }
   session <- rvest::session("https://nextgenstats.nfl.com/stats/top-plays/fastest-ball-carriers")
-  todo <- expand.grid(season = seasons, type = c("passing", "rushing", "receiving"))
+  todo <- expand.grid(season = seasons, type = type)
   file_dir <- file.path(tempdir(), "ngs")
   if (!dir.exists(file_dir)) dir.create(file_dir)
   purrr::walk2(todo$season, todo$type, save_ngs_type, session, file_dir = file_dir)
@@ -97,7 +98,7 @@ save_ngs_data <- function(seasons) {
   cli::cli_alert_success("{.field DONE}")
 }
 
-save_ngs_type <- function(season, type = c("passing", "rushing", "receiving"), session, file_dir) {
+save_ngs_type <- function(season, type, session, file_dir) {
   max_week <- nflreadr::load_schedules(seasons = season) |>
     dplyr::filter(!is.na(result)) |>
     dplyr::pull(week) |>

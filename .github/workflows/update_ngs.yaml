@@ -4,22 +4,62 @@ on:
     - cron:  '0 7 * 1,2,9-12 *'
   workflow_dispatch:
     inputs:
+      season_rebuild:
+        description: 'Rebuild Season (9999 defaults to latest season)'
+        required: false
+        default: 9999
+        type: number
       full_rebuild:
-        description: 'Full Rebuild'
+        description: 'Full Rebuild (overwrites above season)'
         required: true
         default: false
         type: boolean
 
-name: update_ngs
+name: Update NGS Data
 
 jobs:
-  update:
-    name: update data
+  ngs_setup:
     runs-on: ubuntu-latest
+    name: ngs_setup
     env:
-      GITHUB_PAT: ${{ secrets.NFLVERSE_GH_TOKEN }}
       GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}
-      NFLVERSE_REBUILD: ${{ inputs.full_rebuild }}
+      FULL_REBUILD: ${{ inputs.full_rebuild || false }}
+      SEASON_REBUILD: ${{ inputs.season_rebuild || 9999 }}
+    outputs:
+      seasons: ${{ steps.query_seasons.outputs.seasons }}
+    steps:
+      - id: query_seasons
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+          extra-repositories: 'https://nflverse.r-universe.dev'
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: nflverse/nflreadr
+        run: |
+          if [ $FULL_REBUILD == true ]
+          then
+            echo "seasons=$(Rscript -e 'seq(2016, nflreadr::most_recent_season())')" > "$GITHUB_OUTPUT"
+          elif [ $SEASON_REBUILD == 9999 ]
+          then
+            echo "seasons=$(Rscript -e 'nflreadr::most_recent_season()')" > "$GITHUB_OUTPUT"
+          else
+            echo "seasons=${{ env.SEASON_REBUILD }}" > "$GITHUB_OUTPUT"
+          fi
+
+  update_ngs_seasons:
+    needs: ngs_setup
+    name: Update ${{ matrix.season }} ${{ matrix.type }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        season: ${{ fromJson(needs.pbp_setup.outputs.seasons) }}
+        type: ["passing", "rushing", "receiving"]
+    env:
+      GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}
+      NFLVERSE_UPDATE_SEASON: ${{ matrix.season }}
+      NFLVERSE_UPDATE_TYPE: ${{ matrix.type }}
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
@@ -28,8 +68,29 @@ jobs:
           extra-repositories: 'https://nflverse.r-universe.dev'
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          cache-version: 1
-          extra-packages: |
-            nflverse/nflverse-data
-      - name: Run ngs update script
+          extra-packages: nflverse/nflverse-data
+      - name: Release ${{ matrix.type }}
+        run: Rscript -e 'source("R/update_ngs.R")'
+
+  combine_stats:
+    needs: [ngs_setup, update_ngs_seasons]
+    name: Build ${{ matrix.type }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        type: ["combine"]
+    env:
+      GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}
+      NFLVERSE_UPDATE_TYPE: ${{ matrix.type }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+          extra-repositories: 'https://nflverse.r-universe.dev'
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: nflverse/nflverse-data
+      - name: Release ${{ matrix.type }}
         run: Rscript -e 'source("R/update_ngs.R")'

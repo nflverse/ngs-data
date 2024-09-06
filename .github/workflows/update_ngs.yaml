@@ -34,16 +34,16 @@ jobs:
           extra-repositories: 'https://nflverse.r-universe.dev'
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          packages: nflreadr
+          packages: nflreadr, jsonlite
       - id: query_seasons
         name: Query Seasons
         run: |
           if [ $FULL_REBUILD == true ]
           then
-            echo "seasons=$(Rscript -e 'cli::cat_line(seq(2016, nflreadr::most_recent_season()))')" > "$GITHUB_OUTPUT"
+            echo "seasons=$(Rscript -e 'jsonlite::toJSON(seq(2016, nflreadr::most_recent_season()))')" >> "$GITHUB_OUTPUT"
           elif [ $SEASON_REBUILD == 9999 ]
           then
-            echo "seasons=$(Rscript -e 'cli::cat_line(nflreadr::most_recent_season())')" > "$GITHUB_OUTPUT"
+            echo "seasons=$(Rscript -e 'jsonlite::toJSON(nflreadr::most_recent_season())')" >> "$GITHUB_OUTPUT"
           else
             echo "seasons=${{ env.SEASON_REBUILD }}" > "$GITHUB_OUTPUT"
           fi
@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        season: ${{ needs.ngs_setup.outputs.seasons }}
+        season: ${{ fromJson(needs.ngs_setup.outputs.seasons) }}
         type: ["passing", "rushing", "receiving"]
     env:
       GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}

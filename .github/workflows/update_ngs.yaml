@@ -34,7 +34,7 @@ jobs:
           extra-repositories: 'https://nflverse.r-universe.dev'
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: nflverse/nflreadr
+          packages: nflreadr
       - name: Query Seasons
         id: query_seasons
         run: |
@@ -69,6 +69,16 @@ jobs:
           extra-repositories: 'https://nflverse.r-universe.dev'
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          packages: |
+            dplyr,
+            purrr,
+            cli,
+            httr,
+            janitor,
+            rvest,
+            rlang,
+            glue,
+            nflreadr
           extra-packages: nflverse/nflverse-data
       - name: Release ${{ matrix.type }}
         run: Rscript -e 'source("R/update_ngs.R")'
@@ -91,6 +101,11 @@ jobs:
           extra-repositories: 'https://nflverse.r-universe.dev'
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          packages: |
+            cli,
+            glue,
+            nflreadr,
+            purrr
           extra-packages: nflverse/nflverse-data
       - name: Release ${{ matrix.type }}
         run: Rscript -e 'source("R/update_ngs.R")'

@@ -85,7 +85,7 @@ jobs:
 
   combine_stats:
     needs: [ngs_setup, update_ngs_seasons]
-    name: Build ${{ matrix.type }}
+    name: Combine NGS Season Data
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -108,5 +108,5 @@ jobs:
             nflreadr,
             purrr
           extra-packages: nflverse/nflverse-data
-      - name: Release ${{ matrix.type }}
+      - name: Release Combined NGS Data
         run: Rscript -e 'source("R/update_ngs.R")'

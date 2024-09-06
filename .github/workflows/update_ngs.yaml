@@ -28,7 +28,7 @@ jobs:
           extra-repositories: 'https://nflverse.r-universe.dev'
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          cache-version: 3
+          cache-version: 1
           extra-packages: |
             nflverse/nflverse-data
       - name: Run ngs update script

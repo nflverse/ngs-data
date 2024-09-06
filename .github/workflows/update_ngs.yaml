@@ -36,13 +36,14 @@ jobs:
         with:
           packages: nflreadr
       - id: query_seasons
+        name: Query Seasons
         run: |
           if [ $FULL_REBUILD == true ]
           then
-            echo "seasons=$(Rscript -e 'seq(2016, nflreadr::most_recent_season())')" > "$GITHUB_OUTPUT"
+            echo "seasons=$(Rscript -e 'cli::cat_line(seq(2016, nflreadr::most_recent_season()))')" > "$GITHUB_OUTPUT"
           elif [ $SEASON_REBUILD == 9999 ]
           then
-            echo "seasons=$(Rscript -e 'nflreadr::most_recent_season()')" > "$GITHUB_OUTPUT"
+            echo "seasons=$(Rscript -e 'cli::cat_line(nflreadr::most_recent_season())')" > "$GITHUB_OUTPUT"
           else
             echo "seasons=${{ env.SEASON_REBUILD }}" > "$GITHUB_OUTPUT"
           fi

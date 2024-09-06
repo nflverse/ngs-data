@@ -1,10 +1,11 @@
+season <- Sys.getenv("NFLVERSE_UPDATE_SEASON", unset = NA_character_) |> as.integer()
+type <- Sys.getenv("NFLVERSE_UPDATE_TYPE", unset = NA_character_)
+type <- rlang::arg_match0(type, c("passing", "rushing", "receiving", "combine"))
+
 source("R/ngs_functions.R")
 
-if(Sys.getenv("NFLVERSE_REBUILD", "false") == "true"){
-  seasons_to_update <- seq(2016, nflreadr::most_recent_season())
+if (type == "combine"){
+  purrr::walk(c("passing", "rushing", "receiving"), combine_ngs_data)
 } else {
-  seasons_to_update <- nflreadr::most_recent_season()
+  save_ngs_data(season, type)
 }
-save_ngs_data(seasons_to_update)
-
-purrr::walk(c("passing", "rushing", "receiving"), combine_ngs_data)

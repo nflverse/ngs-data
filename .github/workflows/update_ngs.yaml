@@ -15,7 +15,7 @@ name: update_ngs
 jobs:
   update:
     name: update data
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.NFLVERSE_GH_TOKEN }}
       GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}

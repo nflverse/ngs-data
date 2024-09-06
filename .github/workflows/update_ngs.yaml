@@ -33,11 +33,3 @@ jobs:
             nflverse/nflverse-data
       - name: Run ngs update script
         run: Rscript -e 'source("R/update_ngs.R")'
-      - name: Commit results
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git pull
-          git add data
-          git commit -m "NGS data updated `date`" || echo "No changes to commit"
-          git push origin main || echo "No changes to commit"

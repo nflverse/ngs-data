@@ -127,8 +127,10 @@ combine_ngs_data <- function(type){
 
 upload_nflverse <- function(data_path = "data") {
   file_pattern <- paste(most_recent_season(), "ngs_passing", "ngs_receiving", "ngs_rushing", sep = "|")
-  list.files(path = data_path, full.names = TRUE, pattern = file_pattern) |>
-    nflversedata::nflverse_upload("nextgen_stats")
+  files <- list.files(path = data_path, full.names = TRUE, pattern = file_pattern)
+  cli::cli_alert_info("Going to upload the following files:")
+  cli::cli_ul(files)
+  nflversedata::nflverse_upload(files, "nextgen_stats")
 }
 
 most_recent_season <- nflreadr::most_recent_season

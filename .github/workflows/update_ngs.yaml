@@ -18,6 +18,7 @@ jobs:
     runs-on: macOS-latest
     env:
       GITHUB_PAT: ${{ secrets.NFLVERSE_GH_TOKEN }}
+      GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}
       NFLVERSE_REBUILD: ${{ inputs.full_rebuild }}
     steps:
       - uses: actions/checkout@v3
@@ -27,7 +28,6 @@ jobs:
           cache-version: 2
           extra-packages: |
             nflverse/nflverse-data
-            ropensci/piggyback
       - name: Run ngs update script
         run: Rscript -e 'source("R/update_ngs.R")'
       - name: Commit results

@@ -36,6 +36,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: nflverse/nflreadr
+      - name: Query Seasons
         run: |
           if [ $FULL_REBUILD == true ]
           then

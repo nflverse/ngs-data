@@ -1,6 +1,6 @@
 # ngs-data
 
-This repository stores code and workflows for updating nflverse Next Gen Stats scraped from <https://nextgenstats.nfl.com>. The data itself is now being automatically pushed to GitHub releases at https://github.com/nflverse/nflverse-data/releases, which reduces repository bloat. For more information on this change, please see: {blogpost TBD}
+This repository stores code and workflows for updating nflverse Next Gen Stats scraped from <https://nextgenstats.nfl.com>. The data itself is now being automatically pushed to GitHub releases at https://github.com/nflverse/nflverse-data/releases, which reduces repository bloat.
 
 We recommend using the nflreadr R package to access the latest data or nfl-data-py for Python. If you would like to read directly from URLs, linking to nflverse-data release URLs is now the best way to do so.
 

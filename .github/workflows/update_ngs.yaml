@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       season_rebuild:
-        description: 'Rebuild Season (9999 defaults to latest season)'
+        description: 'Rebuild Season (9999 defaults to latest season). Do multiple seasons comma separated, e.g. 2017,2019,2021'
         required: false
         default: 9999
         type: number
@@ -44,7 +44,7 @@ jobs:
           then
             seasons=$( Rscript -e 'nflverse.workflows::get_current_season()' )
           else
-            seasons=${{ env.SEASON_REBUILD }}
+            seasons="[$SEASON_REBUILD]"
           fi
           echo "seasons=$seasons" >> "$GITHUB_OUTPUT"
 

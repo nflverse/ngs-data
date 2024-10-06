@@ -78,10 +78,11 @@ jobs:
             rvest,
             rlang,
             glue,
-            nflreadr
+            nflreadr,
+            pkgload
           extra-packages: nflverse/nflverse-data
       - name: Release ${{ matrix.type }}
-        run: Rscript -e 'source("R/update_ngs.R")'
+        run: Rscript -e 'source("exec/update_ngs.R")'
 
   combine_stats:
     needs: [ngs_setup, update_ngs_seasons]
@@ -106,7 +107,8 @@ jobs:
             cli,
             glue,
             nflreadr,
+            pkgload,
             purrr
           extra-packages: nflverse/nflverse-data
       - name: Release Combined NGS Data
-        run: Rscript -e 'source("R/update_ngs.R")'
+        run: Rscript -e 'source("exec/update_ngs.R")'

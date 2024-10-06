@@ -90,11 +90,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        type: ["combine"]
     env:
       GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}
-      NFLVERSE_UPDATE_TYPE: ${{ matrix.type }}
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
@@ -111,4 +108,4 @@ jobs:
             purrr
           extra-packages: nflverse/nflverse-data
       - name: Release Combined NGS Data
-        run: Rscript -e 'source("exec/update_ngs.R")'
+        run: Rscript -e 'source("exec/combine_ngs.R")'

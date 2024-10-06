@@ -16,14 +16,14 @@ load_week_ngs <- function(season, week, type, session) {
   max_post <- min_post + 5
 
   if (week == 0) {
-    path <- glue::glue("https://appapi.ngs.nfl.com/statboard/{type}?season={season}&seasonType=REG")
+    path <- glue::glue("https://nextgenstats.nfl.com/api/statboard/{type}?season={season}&seasonType=REG")
   } else if (week %in% 1:max_reg) {
-    path <- glue::glue("https://appapi.ngs.nfl.com/statboard/{type}?season={season}&seasonType=REG&week={week}")
+    path <- glue::glue("https://nextgenstats.nfl.com/api/statboard/{type}?season={season}&seasonType=REG&week={week}")
   } else if (week %in% min_post:max_post) {
-    path <- glue::glue("https://appapi.ngs.nfl.com/statboard/{type}?season={season}&seasonType=POST&week={week}")
+    path <- glue::glue("https://nextgenstats.nfl.com/api/statboard/{type}?season={season}&seasonType=POST&week={week}")
   }
 
-  response <- httr::POST(
+  response <- httr::GET(
     url = path,
     session$config,
     httr::config(referer = session$url),

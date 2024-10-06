@@ -14,6 +14,7 @@ Imports:
     purrr,
     cli,
     httr,
+    pkgload,
     janitor,
     rvest,
     rlang,

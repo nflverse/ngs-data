@@ -125,7 +125,7 @@ combine_ngs_data <- function(type){
     save,
     glue::glue("ngs_{type}"),
     glue::glue("Next Gen Stats weekly {type} data"),
-    file_types = c("rds", "parquet", "qs", "csv.gz"),
+    file_types = c("rds", "parquet",  "csv.gz"),
     release_tag = "nextgen_stats"
   )
 

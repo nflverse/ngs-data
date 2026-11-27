@@ -1,7 +1,7 @@
 on:
   schedule:
-    # runs every day at 7:00 AM UTC = 3AM ET in jan, feb, sep-dec
-    - cron:  '0 7 * 1,2,9-12 *'
+    # runs every day at 7:07 AM UTC = 3AM ET in jan, feb, sep-dec
+    - cron:  '7 7 * 1,2,9-12 *'
   workflow_dispatch:
     inputs:
       season_rebuild:
@@ -21,91 +21,74 @@ jobs:
   ngs_setup:
     runs-on: ubuntu-latest
     name: ngs_setup
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      FULL_REBUILD: ${{ inputs.full_rebuild || false }}
-      SEASON_REBUILD: ${{ inputs.season_rebuild || 9999 }}
     outputs:
-      seasons: ${{ steps.query_seasons.outputs.seasons }}
+      seasons: ${{ steps.seasons.outputs.seasons }}
     steps:
-      - uses: r-lib/actions/setup-r@v2
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
+      - id: seasons
+        uses: nflverse/actions/season-matrix@v1
         with:
-          packages: nflverse/nflverse-workflows
-
-      - id: query_seasons
-        name: Query Seasons
-        run: |
-          if [ $FULL_REBUILD == true ]
-          then
-            seasons=$( Rscript -e 'nflverse.workflows::get_season_range(2016)' )
-          elif [ $SEASON_REBUILD == 9999 ]
-          then
-            seasons=$( Rscript -e 'nflverse.workflows::get_current_season()' )
-          else
-            seasons="[$SEASON_REBUILD]"
-          fi
-          echo "seasons=$seasons" >> "$GITHUB_OUTPUT"
+          first-season: 2016
+          season-rebuild: ${{ inputs.season_rebuild }}
+          full-rebuild: ${{ inputs.full_rebuild }}
 
   update_ngs_seasons:
     needs: ngs_setup
     name: Update ${{ matrix.season }} ${{ matrix.type }}
     runs-on: ubuntu-latest
+    # R + all dependencies preinstalled, see https://github.com/nflverse/actions
+    container: ghcr.io/nflverse/r-runner:latest
     strategy:
       fail-fast: false
       matrix:
         season: ${{ fromJson(needs.ngs_setup.outputs.seasons) }}
         type: ["passing", "rushing", "receiving"]
     env:
-      GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}
       NFLVERSE_UPDATE_SEASON: ${{ matrix.season }}
       NFLVERSE_UPDATE_TYPE: ${{ matrix.type }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: r-lib/actions/setup-r@v2
+      # Checkout + nflverse packages at their latest commit + DESCRIPTION deps
+      - uses: nflverse/actions/setup@v1
         with:
-          use-public-rspm: true
-          extra-repositories: 'https://nflverse.r-universe.dev'
-      - uses: r-lib/actions/setup-r-dependencies@v2
+          packages: nflverse/nflverse-data nflverse/nflreadr
+
+      # write access to this repo's ngs-season release only. Minted after
+      # setup, which installs unpinned GitHub code.
+      - id: upload-token
+        uses: nflverse/actions/app-token@v1
         with:
-          packages: |
-            dplyr,
-            purrr,
-            cli,
-            httr,
-            janitor,
-            rvest,
-            rlang,
-            glue,
-            nflreadr,
-            pkgload
-          extra-packages: nflverse/nflverse-data
+          client-id: ${{ vars.NFLVERSE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.NFLVERSE_APP_PRIVATE_KEY }}
+          contents: write
+
       - name: Release ${{ matrix.type }}
         run: Rscript -e 'source("exec/update_ngs.R")'
+        env:
+          # used by the gh cli for release uploads
+          GH_TOKEN: ${{ steps.upload-token.outputs.token }}
 
   combine_stats:
     needs: [ngs_setup, update_ngs_seasons]
     name: Combine NGS Season Data
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    env:
-      GH_TOKEN: ${{ secrets.NFLVERSE_GH_TOKEN }}
+    # R + all dependencies preinstalled, see https://github.com/nflverse/actions
+    container: ghcr.io/nflverse/r-runner:latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: r-lib/actions/setup-r@v2
+      # Checkout + nflverse packages at their latest commit + DESCRIPTION deps
+      - uses: nflverse/actions/setup@v1
         with:
-          use-public-rspm: true
-          extra-repositories: 'https://nflverse.r-universe.dev'
-      - uses: r-lib/actions/setup-r-dependencies@v2
+          packages: nflverse/nflverse-data nflverse/nflreadr
+
+      # write access to the nextgen_stats release of nflverse-data only
+      - id: upload-token
+        uses: nflverse/actions/app-token@v1
         with:
-          packages: |
-            cli,
-            glue,
-            nflreadr,
-            pkgload,
-            purrr
-          extra-packages: nflverse/nflverse-data
+          client-id: ${{ vars.NFLVERSE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.NFLVERSE_APP_PRIVATE_KEY }}
+          repositories: nflverse-data
+          contents: write
+
       - name: Release Combined NGS Data
         run: Rscript -e 'source("exec/combine_ngs.R")'
+        env:
+          # used by the gh cli for release uploads
+          GH_TOKEN: ${{ steps.upload-token.outputs.token }}
